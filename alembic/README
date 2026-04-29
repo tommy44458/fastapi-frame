@@ -1,0 +1,6 @@
+Generic single-database configuration with async PostgreSQL.
+
+Usage:
+  alembic revision --autogenerate -m "message"
+  alembic upgrade head
+  alembic downgrade -1
