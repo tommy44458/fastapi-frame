@@ -1,15 +1,27 @@
-fastapi==0.121.1
+fastapi==0.141.1
 uvicorn[standard]==0.38.0
 SQLAlchemy==2.0.44
 asyncpg==0.30.0
 psycopg2-binary==2.9.11
 alembic==1.13.3
 pydantic==2.12.4
-pydantic-settings==2.12.0
+pydantic-settings==2.14.2
 email-validator==2.2.0
 python-jose[cryptography]==3.5.0
 bcrypt==4.2.1
-python-multipart==0.0.20
-pytest==9.0.0
+python-multipart==0.0.31
+pytest==9.0.3
 pytest-asyncio==1.3.0
 httpx==0.28.1
+
+# Security-driven pins on transitive dependencies (pip-audit findings).
+# Pinned with == like every line above: this file is installed directly by the
+# Dockerfile and there is no lock file, so a floor would let an unreviewed
+# major (e.g. a future starlette) into the next image build. Bump these
+# deliberately when pip-audit reports a new advisory; drop a line once the
+# direct dependency that pulls it in already requires a fixed version itself.
+cryptography==50.0.0
+starlette==1.6.0
+idna==3.18
+Mako==1.4.1
+pyasn1==0.6.4

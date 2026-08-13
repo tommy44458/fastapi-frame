@@ -4,11 +4,11 @@
 
 ## 特色
 
-- **FastAPI 0.121** + **Uvicorn**
+- **FastAPI 0.141** + **Uvicorn**
 - **SQLAlchemy 2.0** 純 async（asyncpg）
 - **Pydantic v2** + `pydantic-settings` 統一管理環境變數
 - **Alembic** 處理 production 結構遷移；dev 模式可開 `AUTO_CREATE_TABLES`
-- **JWT 認證**（`python-jose` + `passlib[bcrypt]`），內建 `/auth/register`、`/auth/token`、`/auth/me`
+- **JWT 認證**（`python-jose` + `bcrypt`），內建 `/auth/register`、`/auth/token`、`/auth/me`
 - **Docker / docker-compose** 一鍵起 Postgres + App
 - **pytest + httpx ASGI** 測試骨架
 
@@ -17,10 +17,10 @@
 ```
 app/
 ├── main.py                # uvicorn 進入點
-├── config.py              # Pydantic Settings
+├── config.py              # Pydantic Settings + APP_VERSION（release 流程改寫，勿改其格式）
 ├── core/
 │   ├── db.py              # async engine + session + get_db
-│   ├── base_model.py      # SQLAlchemy DeclarativeBase
+│   ├── base_model.py      # DeclarativeBase + UUIDBase / IDBase（主鍵 abstract base）
 │   ├── base_operator.py   # CRUD repository (async)
 │   ├── security.py        # JWT + password hashing
 │   └── logging.py         # logging 設定
@@ -55,8 +55,8 @@ docker compose up --build
 ### 2. 本地開發
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 cp .env.example .env
@@ -123,7 +123,8 @@ curl http://localhost:8000/auth/me \
 
 ## 新增功能的標準流程
 
-1. 在 [app/models/](app/models/) 建立 SQLAlchemy model，繼承 `core.base_model.Base`，並建立對應 Operator（繼承 `UUIDOperator` 或 `IDOperator`）。
+1. 在 [app/models/](app/models/) 建立 SQLAlchemy model，依主鍵型式繼承 `core.base_model.UUIDBase`（uuid 主鍵）或 `IDBase`（自增整數主鍵），主鍵欄位由 base 提供，不需自行宣告；再建立對應 Operator（分別繼承 `UUIDOperator` 或 `IDOperator`）。直接繼承 `Base` 的 model 無法通過 `UUIDOperator`／`IDOperator` 的型別檢查。
+   **並把新 model 匯出到 [app/models/\_\_init\_\_.py](app/models/__init__.py)** —— [alembic/env.py](alembic/env.py) 只靠 `import models` 收集 metadata，沒匯出的 model 不會進 `Base.metadata`，第 6 步的 autogenerate 會產生空的 migration。
 2. 在 [app/api/schemas/](app/api/schemas/) 建立 Pydantic 請求/回應 model。
 3. 在 [app/api/routers/](app/api/routers/) 建立 `APIRouter`，使用 `Depends(get_db)`、`Depends(get_current_user)`。
 4. 在 [app/api/app.py](app/api/app.py) 的 `create_app` 裡 `include_router`。

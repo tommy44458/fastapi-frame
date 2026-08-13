@@ -1,0 +1,87 @@
+# PR Pipeline — 薄 caller。
+# 流程定義(分流、evidence 驗證、AI review、merge 決策、production report)
+# 集中維護於 tommy44458/engineering-workflows 的 pr-pipeline.yml — 改中央即時
+# 生效。此檔只宣告 repo 政策(auto_merge 等);請勿在此加流程邏輯。
+# 要接自己的 server-side tests:加 job 並引用 pipeline 的 outputs
+# (high_risk / has_flags / risk_flags)。
+
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches: [dev, main, "release/**"]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # 同 repo 分支的 PR — evidence gate 全套。
+  # evidence 的信任前提是「由可信的貢獻者在本機產生」:sourceHash 只證明
+  # evidence 對應這份程式碼,不證明測試真的跑過。
+  pipeline:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: tommy44458/engineering-workflows/.github/workflows/pr-pipeline.yml@main
+    secrets: inherit
+    with:
+      auto_merge: true
+
+  # fork PR(公開專案的外部貢獻)— 不套 evidence gate,改由 CI 端實跑測試。
+  #
+  # 兩個原因:
+  #   1. 信任模型:外部貢獻者自產的 evidence 不該採信(見上)。
+  #   2. GitHub 對 fork 發起的 pull_request 強制降權:GITHUB_TOKEN 唯讀、
+  #      secrets 不傳遞 — 即使宣告 contents: write 也拿不到。中央 pipeline
+  #      的留言 / labels / auto-merge 一律 403,evidence-check 則必定紅燈。
+  #
+  # 合併流程:維護者把 PR 分支拉到本機跑 gate(見 ONBOARDING「外部貢獻者 PR」)。
+  external-pr:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    # 此 job 必然執行外部貢獻者控制的程式碼(pip install 會跑 setup.py,
+    # pytest 會跑 conftest.py)。這是 fork PR 檢查的正常前提 —— runner 是
+    # 一次性的、拿不到 secrets、token 唯讀 —— 但仍需上限,否則單一 PR 可佔用
+    # 預設 360 分鐘的 Actions 額度。另依賴 GitHub 對首次貢獻者的預設審核機制。
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      # 建成 venv/ 而非裝進系統 interpreter,是為了讓 CI 的環境布局與
+      # .pr-quality.json 的指令(venv/bin/ 前綴)和 pyrightconfig.json 的
+      # venvPath/venv 設定完全一致 —— 指令因此可以逐字執行,不需要任何改寫。
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          venv/bin/pip install --upgrade pip
+          venv/bin/pip install -r requirements-dev.txt
+      # 以下三步的指令一律逐字取自 .pr-quality.json,不在此重寫。理由:
+      # fork PR 不套 evidence gate,CI 是唯一關卡,若把 pip-audit 的
+      # --ignore-vuln 豁免清單抄一份在這裡,日後照 _note 指示移除豁免時
+      # 只會改到 .pr-quality.json,這裡會繼續無聲豁免。
+      # secretScan 不在此重跑,由 GitHub 端的 secret scanning 負責。
+      - name: Typecheck
+        run: .github/run-configured-check.sh typecheck
+      - name: Unit tests
+        run: .github/run-configured-check.sh unit
+      - name: Dependency scan
+        run: .github/run-configured-check.sh dependencyScan
+
+  # release 進 main 後自動打 tag vX.Y.Z(讀 .pr-quality.json 的 versioning)
+  tag-release:
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+    uses: tommy44458/engineering-workflows/.github/workflows/tag-release.yml@main

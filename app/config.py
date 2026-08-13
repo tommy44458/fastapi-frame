@@ -5,6 +5,12 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# 版本號的唯一來源，刻意不放進 ServerConfig：它由 release 流程改寫
+# （.pr-quality.json 的 versioning.files 指向這一行），不接受環境變數覆寫，
+# 否則部署出去的版本字串可能與 git tag 不一致。
+APP_VERSION = "0.1.0"
+
+
 def _resolve_env_file() -> str | None:
     """決定應使用的環境設定檔路徑。
 
@@ -30,7 +36,6 @@ def _resolve_env_file() -> str | None:
 class ServerConfig(BaseSettings):
     # App
     APP_NAME: str = "fastapi-frame"
-    APP_VERSION: str = "0.1.0"
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEV: bool = False

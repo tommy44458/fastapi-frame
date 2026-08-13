@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# PR Quality Gate tooling (installed into the project venv, not globally)
+pyright==1.1.411
+pip-audit==2.10.1
+pytest-cov==7.1.0

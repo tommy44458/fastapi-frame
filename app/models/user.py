@@ -1,20 +1,17 @@
 from datetime import datetime
 from typing import Optional
-from uuid import UUID, uuid4
 
 from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from core.base_model import Base
+from core.base_model import UUIDBase
 from core.base_operator import UUIDOperator
 
 
-class User(Base):
+class User(UUIDBase):
     __tablename__ = "users"
 
-    uuid: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     username: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
