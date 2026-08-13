@@ -4,10 +4,12 @@ from uuid import UUID
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.base_model import Base
+from core.base_model import Base, IDBase, UUIDBase
 
 
 ModelT = TypeVar("ModelT", bound=Base)
+UUIDModelT = TypeVar("UUIDModelT", bound=UUIDBase)
+IDModelT = TypeVar("IDModelT", bound=IDBase)
 
 
 class BaseOperator(Generic[ModelT]):
@@ -30,10 +32,10 @@ class BaseOperator(Generic[ModelT]):
         return result.scalars().all()
 
 
-class UUIDOperator(BaseOperator[ModelT]):
+class UUIDOperator(BaseOperator[UUIDModelT]):
     """Repository for models keyed by `uuid` column."""
 
-    async def get(self, session: AsyncSession, uuid: UUID | str) -> Optional[ModelT]:
+    async def get(self, session: AsyncSession, uuid: UUID | str) -> Optional[UUIDModelT]:
         result = await session.execute(
             select(self.model).where(self.model.uuid == uuid).limit(1)
         )
@@ -50,10 +52,10 @@ class UUIDOperator(BaseOperator[ModelT]):
         await session.commit()
 
 
-class IDOperator(BaseOperator[ModelT]):
+class IDOperator(BaseOperator[IDModelT]):
     """Repository for models keyed by integer `id` column."""
 
-    async def get(self, session: AsyncSession, id_: int) -> Optional[ModelT]:
+    async def get(self, session: AsyncSession, id_: int) -> Optional[IDModelT]:
         result = await session.execute(
             select(self.model).where(self.model.id == id_).limit(1)
         )

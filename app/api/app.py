@@ -5,7 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from api.routers.auth import router as auth_router
 from api.routers.health import router as health_router
-from config import SERVER_CONFIG
+from config import APP_VERSION, SERVER_CONFIG
 from core.db import dispose_db, init_db
 from core.logging import configure_logging
 
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title=SERVER_CONFIG.APP_NAME,
-        version=SERVER_CONFIG.APP_VERSION,
+        version=APP_VERSION,
         lifespan=lifespan,
     )
     app.add_middleware(
