@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
-  "generatedAt": "2026-08-14T06:21:26Z",
-  "sourceHash": "sha256:6266c1d2b2847e60e76a65dd9d61a513d82e0bda07dcf859c2f4b03e83739fc9",
+  "generatedAt": "2026-08-14T06:52:49Z",
+  "sourceHash": "sha256:6e3c5c183c10b66bd4d375833762d9d40c24e137ae398314915c0adbbe326b2c",
   "result": "passed",
   "project": {
     "name": "fastapi-frame",
@@ -59,91 +59,38 @@
   },
   "aiAssessment": {
     "changedAreas": [
-      "ci-cd",
-      "pr-quality-gate"
+      "release 進版 0.1.1(版本檔 + CHANGELOG)"
     ],
     "testedBehaviors": [
-      "The existing suite still passes unchanged on this branch: 10 passed, 0 failed, 0 skipped at 70.8% line coverage — no application source is in this diff (sourceHash byte-identical to dev)"
+      "全套 gate 於進版後通過(機械性版本字串變更)"
     ],
-    "untestedScenarios": [
-      "Unchanged from PR #1 — this diff touches no app/ or tests/ file, so the standing coverage gaps recorded there carry over verbatim and this diff creates no new one"
-    ],
-    "riskFlags": [
-      "infra"
-    ],
-    "reviewerFocus": [
-      "After this PR the gate is local-only: no server-side check recomputes the source hash or re-runs the verifier. A stale or hand-edited pr-test-evidence.json would not be caught by anything in this repo — treat the evidence as the author's structured claim, not verified fact.",
-      "infra is flagged because this diff's entire content is CI-CD deletion. Nothing else changes: no application source, no dependency, no test."
-    ],
-    "rulings": [
-      {
-        "topic": "title-type",
-        "decision": "chore — the gate/CI/tooling import is the dominant change; no user-visible new capability, and the repo has 0 tags so feat's minor bump or a ! variant would both mislead",
-        "basis": "round 4 contract, adjudicating rounds 2-3"
-      },
-      {
-        "topic": "secrets-config-flag",
-        "decision": "rejected — the removed APP_VERSION is a public string already served at /openapi.json; JWT_*, DB_*, CORS_ORIGINS and model_config are byte-identical to HEAD",
-        "basis": "round 4 risk, upheld by the final refute pass"
-      },
-      {
-        "topic": "test-deps",
-        "decision": "pytest/pytest-asyncio/httpx were already in requirements.txt at HEAD and already shipped in the image — pre-existing, not this PR",
-        "basis": "round 2 refute"
-      },
-      {
-        "topic": "operator-duplication",
-        "decision": "get/update/delete bodies are character-identical to HEAD; the AsyncSession.get swap was equally available before — pre-existing, not this PR",
-        "basis": "round 2 refute"
-      },
-      {
-        "topic": "downstream-template-break",
-        "decision": "the operator bound tightening is type-check-only, documented in README, and the repo has 0 tags and no published package — not a finding",
-        "basis": "round 2 refute"
-      },
-      {
-        "topic": "readme-gate-tooling",
-        "decision": "README must not carry PR-gate / pre-PR tooling content; requirements-dev.txt install line deliberately omitted",
-        "basis": "repository owner, stated twice"
-      },
-      {
-        "topic": "pyright-in-ci",
-        "decision": "pyright does not fail on fork PRs for a missing venv/ — it falls back to the PATH interpreter (verified); moot now that the workflow creates a real venv/",
-        "basis": "this session, empirical"
-      },
-      {
-        "topic": "infra-flag",
-        "decision": "earned on this PR — the diff's entire content is CI-CD deletion, which is direct modification, not pass-through. The earlier rejection was reasoned against a main base where no workflow existed",
-        "basis": "this PR, test-gap lens"
-      }
-    ],
+    "untestedScenarios": [],
+    "riskFlags": [],
+    "reviewerFocus": [],
     "architectureReview": {
       "verdict": "clean",
-      "findings": [
-        "Upstream ai-pre-pr removed the server-side pipeline from the framework, so the caller installed by PR #1 no longer has a counterpart to call — it referenced tommy44458/engineering-workflows, which is private while this repo is public, and failed at workflow-parse time on PR #1 (0s, no job started). Deleting it is the upstream-aligned resolution, not a workaround.",
-        "PR #1's commit message described the external-pr job, timeout-minutes and the .github/ workflow. Those statements no longer hold at dev tip; this commit message records the correction rather than rewriting pushed history."
-      ]
+      "findings": []
     },
     "dimensions": {
       "requirement": {
-        "concern": true,
-        "notes": "使用者確認無正式 ticket/spec。本次是跟上游 ai-pre-pr 對齊:框架已移除 server-side pipeline,下游不再保留 caller。"
+        "concern": false,
+        "notes": "機械性 release 進版與版本規則一致"
       },
       "security": {
         "concern": false,
-        "notes": "diff 只刪除 CI 設定,未觸及任何應用程式碼、依賴或機密。被刪的 caller 從未成功執行過(引用私有 repo 的 reusable workflow,在解析階段就失敗),故無安全能力被移除。"
+        "notes": "未變更資訊安全邊界"
       },
       "businessLogic": {
         "concern": false,
-        "notes": "diff 不含任何應用程式碼(sourceHash 與 dev 逐字相同),沒有任何執行期行為改變。"
+        "notes": "未變更業務邏輯"
       },
       "backwardCompatibility": {
         "concern": false,
-        "notes": "無公開 contract 變更。移除的 workflow 在本 repo 從未成功啟動過任何 job,不存在依賴它的既有流程。"
+        "notes": "版本字串與 CHANGELOG 更新未改公開 contract"
       },
       "testing": {
         "concern": false,
-        "notes": "diff 未觸及 app/ 或 tests/;既有測試 10/10 通過、覆蓋率 70.8% 不變。PR #1 記錄的覆蓋缺口原樣沿用。"
+        "notes": "進版後完整 pre-PR gate 已通過"
       }
     },
     "needsTechLeadReview": false
