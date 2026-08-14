@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "generatedAt": "2026-08-13T09:24:14Z",
+  "generatedAt": "2026-08-14T06:21:26Z",
   "sourceHash": "sha256:6266c1d2b2847e60e76a65dd9d61a513d82e0bda07dcf859c2f4b03e83739fc9",
   "result": "passed",
   "project": {
@@ -59,50 +59,22 @@
   },
   "aiAssessment": {
     "changedAreas": [
-      "ci-quality-gate",
-      "core-model-base",
-      "core-operator",
-      "user-model",
-      "app-config",
-      "dependencies",
-      "tests",
-      "docs"
+      "ci-cd",
+      "pr-quality-gate"
     ],
     "testedBehaviors": [
-      "GET /health returns 200 with {\"status\":\"ok\"} on the upgraded fastapi 0.141.1 / starlette 1.6.0 stack (test_health_endpoint)",
-      "users keeps uuid as its first DDL column after the PK moved to UUIDBase — mutation-confirmed red when sort_order=-1 is removed (test_users_column_order_keeps_primary_key_first)",
-      "users PK keeps PG_UUID(as_uuid=True), pk_users constraint name, and a default that really returns a UUID (test_users_primary_key_definition_is_preserved)",
-      "IDBase keeps id as its first DDL column — mutation-confirmed red without sort_order (test_id_base_puts_its_key_first_too)",
-      "APP_VERSION reaches FastAPI.version and /openapi.json (test_app_version_reaches_openapi)",
-      "Restoring APP_VERSION as a ServerConfig field, which extra=\"ignore\" would otherwise hide, is caught (test_app_version_is_not_a_settings_field)",
-      "The release flow's text rewrite still matches app/config.py exactly once, for both X.Y.Z and X.Y.Z-rc-N (test_release_flow_can_still_rewrite_the_version_line)",
-      "bcrypt hash round trip and JWT encode/decode round trip under cryptography 50.0.0 (test_password_hash_roundtrip, test_access_token_roundtrip)"
+      "The existing suite still passes unchanged on this branch: 10 passed, 0 failed, 0 skipped at 70.8% line coverage — no application source is in this diff (sourceHash byte-identical to dev)"
     ],
     "untestedScenarios": [
-      "APP_VERSION env override is asserted at the mechanism level (no settings field) but not at the consumption site in app/api/app.py",
-      "versioning.changelog (CHANGELOG.md) is declared in .pr-quality.json but never validated",
-      "CORS preflight (OPTIONS with Origin) is untested under the starlette 0.4x -> 1.6.0 major bump",
-      "POST /auth/token form parsing is untested under the python-multipart 0.0.20 -> 0.0.31 bump (routers/auth.py 50%)",
-      "App lifespan never runs in tests (httpx ASGITransport skips it): configure_logging, the AUTO_CREATE_TABLES branch, dispose_db",
-      "Every BaseOperator/UUIDOperator/IDOperator CRUD body is uncovered (base_operator.py 54%) — the new generic bounds are enforced by pyright only",
-      "_IDProbe registers _id_probe in the shared Base.metadata; no test asserts the app's own create_all set is unaffected"
+      "Unchanged from PR #1 — this diff touches no app/ or tests/ file, so the standing coverage gaps recorded there carry over verbatim and this diff creates no new one"
     ],
     "riskFlags": [
       "infra"
     ],
     "reviewerFocus": [
-      "sort_order=-1 on UUIDBase/IDBase is load-bearing: deleting it silently moves the primary key to the last column of every generated CREATE TABLE. DDL verified byte-identical to pre-change, so no migration is needed.",
-      "starlette crosses 0.4x -> 1.6.0 and python-multipart 0.0.20 -> 0.0.31 under the unmodified /auth/token form path. Compatibility verified against actual usage, but no test covers form login, CORS preflight or lifespan — a manual register/token/me smoke against a real Postgres before merge is cheap insurance.",
-      "APP_VERSION is no longer environment-overridable. A stale APP_VERSION= in an existing .env is silently dropped by extra=\"ignore\"; the app reports the in-source value in /openapi.json. Cosmetic only, documented in .env.example/README/CHANGELOG and locked by a regression test.",
-      "requirements-dev.txt is referenced by no committed doc — deliberate, per the decision to keep gate tooling out of README. Recorded so the trade-off is on file."
+      "After this PR the gate is local-only: no server-side check recomputes the source hash or re-runs the verifier. A stale or hand-edited pr-test-evidence.json would not be caught by anything in this repo — treat the evidence as the author's structured claim, not verified fact.",
+      "infra is flagged because this diff's entire content is CI-CD deletion. Nothing else changes: no application source, no dependency, no test."
     ],
-    "architectureReview": {
-      "verdict": "clean",
-      "findings": [
-        "Five review rounds ran as the change evolved; the final refute pass adjudicated 7 candidates and none survived as defects. Items fixed along the way: DDL column-order drift (sort_order=-1), unbounded >= floors in an otherwise ==-pinned requirements.txt, a wrong remediation trigger on the pip-audit suppression, a dead CHANGELOG section, a broken README model recipe, CI/config command duplication, and four defective assertions in the new tests.",
-        "Refute rejected as pre-existing or below the bar: test deps in requirements.txt shipping to the Docker image, operator CRUD duplication, the type-check-only operator bound tightening, dead .gitignore entries, the requiredChecks set duplication, the fork-PR self-attestation of external-pr, and _id_probe in the shared metadata."
-      ]
-    },
     "rulings": [
       {
         "topic": "title-type",
@@ -138,28 +110,40 @@
         "topic": "pyright-in-ci",
         "decision": "pyright does not fail on fork PRs for a missing venv/ — it falls back to the PATH interpreter (verified); moot now that the workflow creates a real venv/",
         "basis": "this session, empirical"
+      },
+      {
+        "topic": "infra-flag",
+        "decision": "earned on this PR — the diff's entire content is CI-CD deletion, which is direct modification, not pass-through. The earlier rejection was reasoned against a main base where no workflow existed",
+        "basis": "this PR, test-gap lens"
       }
     ],
+    "architectureReview": {
+      "verdict": "clean",
+      "findings": [
+        "Upstream ai-pre-pr removed the server-side pipeline from the framework, so the caller installed by PR #1 no longer has a counterpart to call — it referenced tommy44458/engineering-workflows, which is private while this repo is public, and failed at workflow-parse time on PR #1 (0s, no job started). Deleting it is the upstream-aligned resolution, not a workaround.",
+        "PR #1's commit message described the external-pr job, timeout-minutes and the .github/ workflow. Those statements no longer hold at dev tip; this commit message records the correction rather than rewriting pushed history."
+      ]
+    },
     "dimensions": {
       "requirement": {
         "concern": true,
-        "notes": "使用者確認無正式 ticket/spec(內部工具導入),requirement 合規性不可驗證;description 與 diff 的自洽性已由 contract lens 逐項核對通過。"
+        "notes": "使用者確認無正式 ticket/spec。本次是跟上游 ai-pre-pr 對齊:框架已移除 server-side pipeline,下游不再保留 caller。"
       },
       "security": {
         "concern": false,
-        "notes": "security.py / deps.py / routers/auth.py 未被觸及,config.py 的 JWT_*/DB_*/CORS_ORIGINS/model_config 與 HEAD 逐字相同;pip-audit 豁免的不可達性以執行驗證;external-pr 的 fork 自證疑慮經 refute 判定 assurance delta 為零(該 job 本來就執行貢獻者的 pip install 與 pytest)。"
+        "notes": "diff 只刪除 CI 設定,未觸及任何應用程式碼、依賴或機密。被刪的 caller 從未成功執行過(引用私有 repo 的 reusable workflow,在解析階段就失敗),故無安全能力被移除。"
       },
       "businessLogic": {
         "concern": false,
-        "notes": "CREATE TABLE users 與兩個 index 經編譯比對與變更前逐字相同;operator 變更僅型別層;唯一行為變更是 APP_VERSION 不再可由環境變數覆寫,影響面僅 /openapi.json 的版本字串,且有回歸測試鎖住。"
+        "notes": "diff 不含任何應用程式碼(sourceHash 與 dev 逐字相同),沒有任何執行期行為改變。"
       },
       "backwardCompatibility": {
         "concern": false,
-        "notes": "app/api/**、config 格式、DDL 均無不相容變更,不需 migration。APP_VERSION 移除環境覆寫是刻意且已在 .env.example/README/CHANGELOG 宣告並有測試;venv 命名是對齊 pyrightconfig.json 的既有設定,非變更。"
+        "notes": "無公開 contract 變更。移除的 workflow 在本 repo 從未成功啟動過任何 job,不存在依賴它的既有流程。"
       },
       "testing": {
         "concern": false,
-        "notes": "本次引入的兩個 load-bearing 不變式(UUIDBase/IDBase 的 sort_order、版本來源)都有 mutation 驗證過會紅燈的測試;剩餘缺口為既有債,已逐條列入 untestedScenarios。"
+        "notes": "diff 未觸及 app/ 或 tests/;既有測試 10/10 通過、覆蓋率 70.8% 不變。PR #1 記錄的覆蓋缺口原樣沿用。"
       }
     },
     "needsTechLeadReview": false
