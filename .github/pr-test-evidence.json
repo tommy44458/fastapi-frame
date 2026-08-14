@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-08-14T06:52:49Z",
+  "sourceHash": "sha256:6e3c5c183c10b66bd4d375833762d9d40c24e137ae398314915c0adbbe326b2c",
+  "result": "passed",
+  "project": {
+    "name": "fastapi-frame",
+    "type": "python",
+    "components": []
+  },
+  "checks": {
+    "affectedE2E": {
+      "status": "not_applicable",
+      "tool": null
+    },
+    "build": {
+      "status": "not_applicable",
+      "tool": null
+    },
+    "dependencyScan": {
+      "status": "passed",
+      "tool": "custom",
+      "critical": 0,
+      "high": 0
+    },
+    "format": {
+      "status": "not_applicable",
+      "tool": null
+    },
+    "integration": {
+      "status": "not_applicable",
+      "tool": null
+    },
+    "lint": {
+      "status": "not_applicable",
+      "tool": null
+    },
+    "secretScan": {
+      "status": "passed",
+      "tool": "gitleaks",
+      "findings": 0
+    },
+    "typecheck": {
+      "status": "passed",
+      "tool": "custom"
+    },
+    "unit": {
+      "status": "passed",
+      "tool": "custom",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "coverage": {
+    "lines": 70.8,
+    "branches": null,
+    "changedLines": null
+  },
+  "aiAssessment": {
+    "changedAreas": [
+      "release 進版 0.1.1(版本檔 + CHANGELOG)"
+    ],
+    "testedBehaviors": [
+      "全套 gate 於進版後通過(機械性版本字串變更)"
+    ],
+    "untestedScenarios": [],
+    "riskFlags": [],
+    "reviewerFocus": [],
+    "architectureReview": {
+      "verdict": "clean",
+      "findings": []
+    },
+    "dimensions": {
+      "requirement": {
+        "concern": false,
+        "notes": "機械性 release 進版與版本規則一致"
+      },
+      "security": {
+        "concern": false,
+        "notes": "未變更資訊安全邊界"
+      },
+      "businessLogic": {
+        "concern": false,
+        "notes": "未變更業務邏輯"
+      },
+      "backwardCompatibility": {
+        "concern": false,
+        "notes": "版本字串與 CHANGELOG 更新未改公開 contract"
+      },
+      "testing": {
+        "concern": false,
+        "notes": "進版後完整 pre-PR gate 已通過"
+      }
+    },
+    "needsTechLeadReview": false
+  }
+}

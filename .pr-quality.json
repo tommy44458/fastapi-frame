@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "1.0",
+  "project": {
+    "name": "fastapi-frame",
+    "type": "python"
+  },
+  "prePrCommand": "./scripts/pre-pr.sh",
+  "verifyCommand": "./scripts/verify-pr-ready.sh",
+  "sourceHashCommand": "./scripts/calculate-source-hash.sh",
+  "evidenceGenerator": "./scripts/generate-pr-test-evidence.py",
+  "evidenceOutput": ".github/pr-test-evidence.json",
+  "localReportDirectory": ".local-reports",
+  "evidenceMaxAgeMinutes": 720,
+  "sourcePaths": [
+    "app",
+    "tests",
+    "scripts"
+  ],
+  "additionalSourceFiles": [
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "bun.lock",
+    "bun.lockb",
+    "pyproject.toml",
+    "uv.lock",
+    "poetry.lock",
+    "requirements.txt",
+    "requirements-dev.txt",
+    "requirements.lock",
+    "tsconfig.json",
+    "tsconfig.base.json",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "jest.config.js",
+    "eslint.config.js",
+    ".eslintrc.json",
+    ".prettierrc",
+    "ruff.toml",
+    "mypy.ini",
+    "pyrightconfig.json",
+    ".pr-quality.json"
+  ],
+  "excludeFromSourceHash": [
+    ".github/pr-test-evidence.json",
+    ".local-reports",
+    "coverage",
+    "test-results",
+    "playwright-report",
+    "dist",
+    "build",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "scripts/pre-pr.sh",
+    "scripts/verify-pr-ready.sh",
+    "scripts/calculate-source-hash.sh",
+    "scripts/generate-pr-test-evidence.py",
+    "scripts/render-pr-body.py",
+    "scripts/_detect.sh",
+    "scripts/install-pr-quality.sh",
+    "scripts/sync-gate-from-upstream.sh",
+    "scripts/prepare-release.sh"
+  ],
+  "requiredChecks": [
+    "typecheck",
+    "unit",
+    "dependencyScan",
+    "secretScan"
+  ],
+  "policy": {
+    "dependency": {
+      "maxCritical": 0,
+      "maxHigh": 0
+    },
+    "coverage": {
+      "minChangedLines": null,
+      "minLines": null
+    },
+    "risk": {
+      "criticalFlags": [
+        "db-migration",
+        "data-migration",
+        "destructive-operation",
+        "auth",
+        "pii-data",
+        "payment",
+        "public-api",
+        "secrets-config"
+      ],
+      "criticalPaths": {
+        "db-migration": [
+          "alembic/",
+          "migrations/",
+          "prisma/migrations/",
+          "db/migrate/"
+        ]
+      }
+    }
+  },
+  "checks": {
+    "format": {
+      "command": "auto"
+    },
+    "lint": {
+      "command": "auto"
+    },
+    "typecheck": {
+      "command": "venv/bin/pyright",
+      "_note": "explicit venv prefix — dev tools live in the project venv, auto-detect only sees global PATH"
+    },
+    "unit": {
+      "command": "venv/bin/pytest -q --junitxml=.local-reports/junit-unit.xml --cov=app --cov-report=json:.local-reports/coverage.json",
+      "_note": "explicit venv prefix; JUnit XML + coverage json are written by pytest itself so evidence has real counts"
+    },
+    "integration": {
+      "command": "auto"
+    },
+    "affectedE2E": {
+      "command": "auto"
+    },
+    "build": {
+      "command": "auto"
+    },
+    "dependencyScan": {
+      "command": "venv/bin/pip-audit -f json --progress-spinner=off --ignore-vuln PYSEC-2026-1325",
+      "_note": "explicit venv prefix; audits the venv the app actually runs on. PYSEC-2026-1325 (ecdsa Minerva timing attack) is ignored: ecdsa is a hard transitive dep of python-jose and upstream considers side-channel attacks out of scope, so no fix is planned. The vulnerable ECDSA sign/keygen/ECDH paths are unreachable here because python-jose resolves jose.backends.ECKey to CryptographyECKey whenever cryptography is installed, and cryptography is guaranteed by the python-jose[cryptography] extra plus the explicit cryptography pin — this holds regardless of which JWT algorithm is configured. Remove this ignore if cryptography ever stops being installed, or once python-jose no longer requires ecdsa at all."
+    },
+    "secretScan": {
+      "command": "auto"
+    }
+  },
+  "e2e": {
+    "mode": "affected-only",
+    "affectedSelector": {
+      "byTag": [],
+      "byPathMap": {}
+    },
+    "coreFlows": []
+  },
+  "components": [],
+  "versioning": {
+    "files": [
+      {
+        "path": "app/config.py",
+        "pattern": "APP_VERSION = \"{version}\""
+      }
+    ],
+    "changelog": "CHANGELOG.md"
+  }
+}
